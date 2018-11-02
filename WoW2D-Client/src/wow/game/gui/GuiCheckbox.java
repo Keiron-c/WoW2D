@@ -22,6 +22,8 @@ public class GuiCheckbox {
 	private String text;
 	private Rectangle bounds;
 	
+	private boolean isEnabled = true;
+	
 	public GuiCheckbox(GameContainer container, String text) throws SlickException {
 		this.text = text;
 		this.bounds = new Rectangle(0, 0, checkboxBorder.getWidth(), checkboxBorder.getHeight());
@@ -46,9 +48,11 @@ public class GuiCheckbox {
 		float mouseX = input.getMouseX();
 		float mouseY = input.getMouseY();
 		
-		if (bounds.contains(mouseX, mouseY)) {
-			if (input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) {
-				checkmark.setVisible(!checkmark.isVisible());
+		if (isEnabled) {
+			if (bounds.contains(mouseX, mouseY)) {
+				if (input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) {
+					checkmark.setVisible(!checkmark.isVisible());
+				}
 			}
 		}
 	}
@@ -62,6 +66,10 @@ public class GuiCheckbox {
 	
 	public void setToggled(boolean isToggled) {
 		checkmark.setVisible(isToggled);
+	}
+	
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
 	}
 	
 	public boolean isToggled() {

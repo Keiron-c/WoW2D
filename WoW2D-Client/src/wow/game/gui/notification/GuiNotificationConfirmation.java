@@ -15,9 +15,9 @@ import wow.game.gui.GuiButton;
  */
 public class GuiNotificationConfirmation extends GuiNotificationInterface {
 
-	// TODO: no need for a button list, really.
-	public GuiNotificationConfirmation(float x, float y, String text) throws SlickException {
+	public GuiNotificationConfirmation(float x, float y, String text, String buttonText) throws SlickException {
 		super(x, y, text);
+		this.addButton(new GuiButton(buttonText));
 	}
 
 	@Override
@@ -26,25 +26,17 @@ public class GuiNotificationConfirmation extends GuiNotificationInterface {
 			image.render(container, sbg, graphics);
 			graphics.setColor(Color.yellow);
 			graphics.drawString(text, (x + (image.getWidth() / 2 - graphics.getFont().getWidth(text) / 2)), (y + (image.getHeight() / 2 - graphics.getFont().getHeight(text) / 2) - 25));
-		
-			if (buttons.size() > 0) {
-				for (GuiButton button : buttons) {
-					button.render(container, sbg, graphics);
-				}
-			}
+			button.render(container, sbg, graphics);
 		}
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame sbg) throws SlickException {
 		if (shouldUpdate) {
-			if (buttons.size() > 0) {
-				for (GuiButton button : buttons) {
-					button.update(container, sbg);
-					if (button.isPressed()) {
-						shouldUpdate = false;
-					}
-				}
+			if (button != null) {
+				button.update(container, sbg);
+				if (button.isPressed())
+					shouldUpdate = false;
 			}
 		}
 	}

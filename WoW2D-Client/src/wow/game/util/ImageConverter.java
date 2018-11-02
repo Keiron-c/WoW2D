@@ -17,12 +17,13 @@ import wow.net.util.Logger;
  */
 public class ImageConverter {
 
-	public static Image BufferedToSlick(BufferedImage image) {
+	public static Image BufferedToSlick(BufferedImage image, boolean shouldScale) {
 		try {
 			Texture imageTexture = BufferedImageUtil.getTexture("", image);
 			Image slickImage = new Image(imageTexture.getImageWidth(), imageTexture.getImageHeight());
 			slickImage.setTexture(imageTexture);
-			slickImage = slickImage.getScaledCopy(32, 32);
+			if (shouldScale)
+				slickImage = slickImage.getScaledCopy(32, 32);
 			slickImage.setFilter(Image.FILTER_NEAREST);
 			return slickImage;
 		} catch (SlickException e) {

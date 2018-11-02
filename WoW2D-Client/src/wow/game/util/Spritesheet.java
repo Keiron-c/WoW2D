@@ -27,7 +27,7 @@ public class Spritesheet {
 	
 	public Image getSpriteAt(int x, int y) {
 		BufferedImage image = spritesheet.getSubimage(x * 16, y * 16, 16, 16);
-		Image slickImage = ImageConverter.BufferedToSlick(image);
+		Image slickImage = ImageConverter.BufferedToSlick(image, true);
 		return slickImage;
 	}
 }

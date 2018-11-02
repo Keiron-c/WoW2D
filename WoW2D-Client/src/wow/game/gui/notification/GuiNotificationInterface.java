@@ -22,7 +22,7 @@ public abstract class GuiNotificationInterface {
 	protected float x, y;
 	protected String text;
 	
-	protected ArrayList<GuiButton> buttons;
+	protected GuiButton button;
 	
 	protected boolean shouldUpdate = false;
 	
@@ -31,7 +31,6 @@ public abstract class GuiNotificationInterface {
 		this.y = y;
 		this.image.setLocation(x, y);
 		this.text = text;
-		this.buttons = new ArrayList<GuiButton>();
 		shouldUpdate = true;
 	}
 	
@@ -40,15 +39,10 @@ public abstract class GuiNotificationInterface {
 	
 	public void addButton(GuiButton button) {
 		button.setLocation((x + (image.getWidth() / 2 - button.getButtonWidth() / 2)), (y + (image.getHeight() / 2 - button.getButtonHeight() / 2)) + 20);
-		buttons.add(button);
+		this.button = button;
 	}
 	
 	public boolean isButtonPressed() {
-		for (GuiButton button : buttons) {
-			if (button.isPressed()) {
-				return true;
-			}
-		}
-		return false;
+		return button.isPressed();
 	}
 }

@@ -1,10 +1,16 @@
 package wow.game.state;
 
-import java.util.Date;
+import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
@@ -18,6 +24,7 @@ import wow.game.gui.notification.GuiNotificationBasic;
 import wow.game.gui.notification.GuiNotificationConfirmation;
 import wow.game.net.connection.LogonConnection;
 import wow.game.net.connection.LogonConnection.LogonStatus;
+import wow.game.util.ImageConverter;
 import wow.game.util.SettingsConfiguration;
 import wow.game.util.SettingsConfiguration.Keys;
 import wow.game.util.manager.NetworkManager;
@@ -49,6 +56,11 @@ public class State0Login extends BasicGameState {
 	private GuiCheckbox rememberCheckbox;
 	
 	private boolean isRememberedAccountSet = false;
+	
+	private BufferedImage rawBg;
+	private Image bg;
+	
+	private boolean disableAll = false;
 
 	@Override
 	public void init(GameContainer container, StateBasedGame sbg) throws SlickException {
@@ -67,23 +79,36 @@ public class State0Login extends BasicGameState {
 		rememberCheckbox = new GuiCheckbox(container, "Remember Account Name");
 		rememberCheckbox.setLocation(25, container.getHeight() - 100);
 		
-		rememberCheckbox.setToggled(SettingsConfiguration.getRememberAccount());
+		rememberCheckbox.setToggled(SettingsConfiguration.shouldRememberAccount());
 		if (rememberCheckbox.isToggled()) {
 			textfield_AccountName.setText(SettingsConfiguration.getAccount());
 			textfield_AccountPassword.setFocus(true);
+		}
+		
+		try {
+			bg = ImageConverter.BufferedToSlick(ImageIO.read(new FileInputStream("resources/bg.jpg")), false);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame sbg, Graphics graphics) throws SlickException {
+		graphics.drawImage(bg, 0, 0);
 		graphics.setFont(container.getDefaultFont());
+		graphics.setColor(Color.black);
+		graphics.drawString(label_AccountName, container.getWidth() / 2 - graphics.getFont().getWidth(label_AccountName) / 2 + 2, container.getHeight() / 2 - 75 - graphics.getFont().getHeight(label_AccountName) / 2 + 1);
+		graphics.drawString(label_AccountPassword, container.getWidth() / 2 - graphics.getFont().getWidth(label_AccountPassword) / 2 + 2, container.getHeight() / 2 - graphics.getFont().getHeight(label_AccountPassword) / 2 + 1);
 		graphics.setColor(Color.yellow);
 		graphics.drawString(label_AccountName, container.getWidth() / 2 - graphics.getFont().getWidth(label_AccountName) / 2, container.getHeight() / 2 - 75 - graphics.getFont().getHeight(label_AccountName) / 2);
 		graphics.drawString(label_AccountPassword, container.getWidth() / 2 - graphics.getFont().getWidth(label_AccountPassword) / 2, container.getHeight() / 2 - graphics.getFont().getHeight(label_AccountPassword) / 2);
-		graphics.drawString(String.format("Version %s (Build 6) (dev-Alpha)", WoW.getVersion()), 0, container.getHeight() - (graphics.getFont().getLineHeight() * 2));
+		graphics.drawString(String.format("Version %s (dev-Alpha)", WoW.getVersion()), 0, container.getHeight() - (graphics.getFont().getLineHeight() * 2));
 		graphics.drawString("Oct 29 2018", 0, container.getHeight() - graphics.getFont().getLineHeight());
 		graphics.drawString(label_Copyright, container.getWidth() / 2 - graphics.getFont().getWidth(label_Copyright) / 2, container.getHeight() - graphics.getFont().getLineHeight() * 2);
 		graphics.drawString(label_BlizzCopyright, container.getWidth() / 2 - graphics.getFont().getWidth(label_BlizzCopyright) / 2, container.getHeight() - graphics.getFont().getLineHeight());
+		
 		
 		graphics.setColor(Color.gray);
 		if (label_LastRealm != null)
@@ -104,14 +129,6 @@ public class State0Login extends BasicGameState {
 
 	@Override
 	public void update(GameContainer container, StateBasedGame sbg, int delta) throws SlickException {
-		if (container.getInput().isKeyPressed(Input.KEY_TAB)) {
-			if (textfield_AccountName.hasFocus()) {
-				textfield_AccountPassword.setFocus(true);
-			} else {
-				textfield_AccountName.setFocus(true);
-			}
-		}
-
 		if (!textfield_AccountName.hasFocus() && !textfield_AccountPassword.hasFocus())
 			textfield_AccountName.setFocus(true);
 				
@@ -119,13 +136,19 @@ public class State0Login extends BasicGameState {
 		if (!lastRealm.equalsIgnoreCase("null"))
 			label_LastRealm = lastRealm;
 		
-		if (SettingsConfiguration.getRememberAccount()) {
+		if (SettingsConfiguration.shouldRememberAccount()) {
 			if (!isRememberedAccountSet) {
 				textfield_AccountName.setText(SettingsConfiguration.getAccount());
 				isRememberedAccountSet = true;
 			}
 		}
 		
+		if (confirmationNotification != null || basicNotification != null) 
+			disableAll = true;
+		else
+			disableAll = false;
+		
+		shouldDisableUI();
 		updateButtons(container, sbg);
 		updateUI(container, sbg);
 	}
@@ -144,13 +167,12 @@ public class State0Login extends BasicGameState {
 			textfield_AccountPassword.clear();
 			
 			if (accountUsername.isEmpty()) {
-				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Please enter your account name.");
-				confirmationNotification.addButton(new GuiButton("Okay"));
+				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Please enter your account name.", "Okay");
 				return;
 			}
 			
 			if (accountPassword.isEmpty()) {
-				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Please enter your account password.");
+				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Please enter your account password.", "Okay");
 				confirmationNotification.addButton(new GuiButton("Okay"));
 				return;
 			}
@@ -169,6 +191,16 @@ public class State0Login extends BasicGameState {
 	}
 	
 	private void updateUI(GameContainer container, StateBasedGame sbg) throws SlickException {
+		if (container.getInput().isKeyPressed(Input.KEY_TAB)) {
+			if (!disableAll) {
+				if (textfield_AccountName.hasFocus()) {
+					textfield_AccountPassword.setFocus(true);
+				} else {
+					textfield_AccountName.setFocus(true);
+				}
+			}
+		}
+
 		LogonConnection logonConnection = NetworkManager.getLogonConnection();
 		if (logonConnection != null) {
 			LogonStatus status = logonConnection.getStatus();
@@ -181,19 +213,16 @@ public class State0Login extends BasicGameState {
 				basicNotification = new GuiNotificationBasic(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Connecting");
 				break;
 			case ConnectingFailed:
-				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Unable to connect. Please contact a developer.");
-				confirmationNotification.addButton(new GuiButton("Okay"));
+				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Unable to connect. Please contact a developer.", "Okay");
 				break;
 			case Authenticating:
 				basicNotification = new GuiNotificationBasic(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Authenticating");
 				break;
 			case AuthenticatingLoggedIn:
-				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Account is already logged in.");
-				confirmationNotification.addButton(new GuiButton("Okay"));
+				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Account is already logged in.", "Okay");
 				break;
 			case AuthenticatingUnk:
-				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Unknown account. Please try again or contact a developer.");
-				confirmationNotification.addButton(new GuiButton("Okay"));
+				confirmationNotification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Unknown account. Please try again or contact a developer.", "Okay");
 				break;
 			case EnterRealm:
 				basicNotification = null;
@@ -222,6 +251,22 @@ public class State0Login extends BasicGameState {
 						NetworkManager.disconnectLogon();
 				}
 			}
+		}
+	}
+	
+	private void shouldDisableUI() {
+		if (disableAll) {
+			button_Login.setEnabled(false);
+			button_Quit.setEnabled(false);
+			textfield_AccountName.setEnabled(false);
+			textfield_AccountPassword.setEnabled(false);
+			rememberCheckbox.setEnabled(false);
+		} else {
+			button_Login.setEnabled(true);
+			button_Quit.setEnabled(true);
+			textfield_AccountName.setEnabled(true);
+			textfield_AccountPassword.setEnabled(true);
+			rememberCheckbox.setEnabled(true);
 		}
 	}
 

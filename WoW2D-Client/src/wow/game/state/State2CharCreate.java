@@ -36,6 +36,8 @@ public class State2CharCreate extends BasicGameState {
 	
 	private RaceUndead undeadRace;
 	
+	private boolean disableAll = false;
+	
 	@Override
 	public void init(GameContainer container, StateBasedGame sbg) throws SlickException {
 		undeadRace = new RaceUndead();
@@ -73,6 +75,9 @@ public class State2CharCreate extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame sbg, int delta) throws SlickException {
 		LogonConnection logonConnection = NetworkManager.getLogonConnection();
 		
+		if (!textfield_CharacterName.hasFocus()) 
+			textfield_CharacterName.setFocus(true);
+		
 		button_Accept.update(container, sbg);
 		{
 			if (button_Accept.isPressed()) {
@@ -80,11 +85,16 @@ public class State2CharCreate extends BasicGameState {
 				String name = textfield_CharacterName.getText().trim();
 				String race = "Undead";
 				
-				name = name.toLowerCase();
-				String newName = name.substring(0, 1).toUpperCase() + name.substring(1);
-				tempCharacter = new PlayerCharacter(newName, WoW.RaceType.valueOf(race));
+				if (!isNameNullOrWhitespace(name)) {
+					name = name.toLowerCase();
+					String newName = name.substring(0, 1).toUpperCase() + name.substring(1);
+					tempCharacter = new PlayerCharacter(newName, WoW.RaceType.valueOf(race));
+					logonConnection.sendCreateCharacter(newName);
+				} else {
+					notification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Please enter a character name.", "Okay");
+				}
 				
-				logonConnection.sendCreateCharacter(newName);
+				textfield_CharacterName.setText("");
 			}
 		}
 		button_Back.update(container, sbg);
@@ -106,8 +116,7 @@ public class State2CharCreate extends BasicGameState {
 				sbg.enterState(State1CharSelect.ID);
 				break;
 			case CharCreationFailed:
-				notification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Invalid name. Please try again.");
-				notification.addButton(new GuiButton("Okay"));
+				notification = new GuiNotificationConfirmation(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Invalid name. Please try again.", "Okay");
 				break;
 			case Waiting:
 				notification = null;
@@ -116,6 +125,7 @@ public class State2CharCreate extends BasicGameState {
 		}
 		
 		if (notification != null) {
+			disableAll = true;
 			notification.update(container, sbg);
 			if (notification.isButtonPressed()) {
 				notification = null;
@@ -123,7 +133,33 @@ public class State2CharCreate extends BasicGameState {
 					logonConnection.setStatus(LogonStatus.Waiting);
 				}
 			}
+		} else
+			disableAll = false;
+		
+		shouldDisableUI();
+	}
+	
+	private void shouldDisableUI() {
+		if (disableAll) {
+			button_Accept.setEnabled(false);
+			button_Back.setEnabled(false);
+			textfield_CharacterName.setEnabled(false);
+		} else {
+			button_Accept.setEnabled(true);
+			button_Back.setEnabled(true);
+			textfield_CharacterName.setEnabled(true);
 		}
+	}
+	
+	private boolean isNameNullOrWhitespace(String text) {
+		if (text == null) 
+			return true;
+		for (int i = 0; i < text.length(); i++) {
+			if (!Character.isWhitespace(text.charAt(i))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
