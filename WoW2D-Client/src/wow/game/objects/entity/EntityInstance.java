@@ -39,7 +39,7 @@ public class EntityInstance {
 	public void render(Graphics graphics) {
 		graphics.setFont(WoW.getSmallFont());
 		if (img == null) {
-			img = ImageConverter.BufferedToSlick(rawImg);
+			img = ImageConverter.BufferedToSlick(rawImg, true);
 			bounds = new Rectangle(0, 0, img.getWidth(), img.getHeight());
 		}
 		bounds.setLocation(x, y);

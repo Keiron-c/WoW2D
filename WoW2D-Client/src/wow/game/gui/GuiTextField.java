@@ -55,6 +55,10 @@ public class GuiTextField {
 		textfield.setCursorPos(textfield.getText().length());
 	}
 	
+	public void setEnabled(boolean isEnabled) {
+		textfield.setAcceptingInput(isEnabled);
+	}
+	
 	public Vector2f getLocation() {
 		return new Vector2f(x, y);
 	}
