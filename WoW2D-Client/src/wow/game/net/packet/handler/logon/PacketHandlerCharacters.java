@@ -4,6 +4,8 @@ import org.newdawn.slick.SlickException;
 
 import com.esotericsoftware.kryonet.Client;
 
+import net.arikia.dev.drpc.DiscordRPC;
+import net.arikia.dev.drpc.DiscordRichPresence;
 import wow.game.WoW;
 import wow.game.objects.PlayerCharacter;
 import wow.game.util.manager.RealmManager;

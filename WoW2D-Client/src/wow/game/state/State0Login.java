@@ -16,6 +16,8 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
+import net.arikia.dev.drpc.DiscordRPC;
+import net.arikia.dev.drpc.DiscordRichPresence;
 import wow.game.WoW;
 import wow.game.gui.GuiButton;
 import wow.game.gui.GuiCheckbox;
@@ -227,6 +229,8 @@ public class State0Login extends BasicGameState {
 			case EnterRealm:
 				basicNotification = null;
 				sbg.enterState(State1CharSelect.ID);
+				DiscordRPC.discordUpdatePresence(new DiscordRichPresence.Builder("").setDetails("Choosing Character...").setBigImage("big_logo", "Placeholder").build());
+				DiscordRPC.discordRunCallbacks();
 				break;
 			case RequestingChars:
 				basicNotification = new GuiNotificationBasic(container.getWidth() / 2 - 480 / 2, container.getHeight() / 2 - 96 / 2, "Retrieving characters");

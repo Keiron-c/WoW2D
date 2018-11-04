@@ -11,6 +11,8 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
+import net.arikia.dev.drpc.DiscordRPC;
+import net.arikia.dev.drpc.DiscordRichPresence;
 import wow.game.WoW;
 import wow.game.gui.GuiBasicImage;
 import wow.game.gui.GuiButton;
@@ -47,7 +49,7 @@ public class State1CharSelect extends BasicGameState {
 	private PlayerCharacter charToBeDeleted;
 
 	@Override
-	public void init(GameContainer container, StateBasedGame sbg) throws SlickException {	
+	public void init(GameContainer container, StateBasedGame sbg) throws SlickException {
 		characters = new LinkedList<PlayerCharacter>();
 		
 		button_EnterWorld = new GuiButton("Enter World");
@@ -183,6 +185,8 @@ public class State1CharSelect extends BasicGameState {
 				button_Back.setPressedFalse();
 				
 				NetworkManager.disconnectLogon();
+				DiscordRPC.discordUpdatePresence(new DiscordRichPresence.Builder("").setDetails("Logging In...").setBigImage("big_logo", "Placeholder").build());
+				DiscordRPC.discordRunCallbacks();
 				sbg.enterState(State0Login.ID);
 			}
 		}

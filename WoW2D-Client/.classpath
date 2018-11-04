@@ -10,5 +10,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/kryonet-2.21-all.jar"/>
 	<classpathentry kind="lib" path="lib/wow2d_net.jar"/>
+	<classpathentry kind="lib" path="lib/discord-rpc.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

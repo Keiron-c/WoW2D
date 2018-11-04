@@ -15,6 +15,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
+import wow.discord.WoWDiscord;
 import wow.game.state.State0Login;
 import wow.game.state.State1CharSelect;
 import wow.game.state.State2CharCreate;
@@ -59,6 +60,7 @@ public class WoW extends StateBasedGame {
 		new Thread("loading") {
 			public void run() {
 				checkDirectories();
+				WoWDiscord.start();
 			}
 		}.start();
 	}
